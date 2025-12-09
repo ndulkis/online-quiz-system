@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Reset and Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f8f9fa;
+            color: #333;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px 0;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4361ee;
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 20px;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 5px;
+        }
+
+        .nav-links a:hover {
+            background: #f0f2f5;
+        }
+
+        .nav-links a.active {
+            background: #4361ee;
+            color: white;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Main Content */
+        main {
+            padding: 30px 0;
+            min-height: 70vh;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: #4361ee;
+            color: white;
+        }
+
+        .btn-success {
+            background: #06d6a0;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4361ee;
+        }
+
+        /* Quiz Cards */
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .quiz-card {
+            transition: transform 0.2s;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .quiz-meta {
+            color: #666;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        /* Quiz Taking */
+        .question {
+            margin: 20px 0;
+        }
+
+        .option {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .option:hover {
+            background: #e9ecef;
+        }
+
+        .option.selected {
+            border-color: #4361ee;
+            background: #e7f0ff;
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background: #4361ee;
+            color: white;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        /* Login/Register */
+        .auth-container {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 15px;
+            background: #f0f2f5;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .auth-tab.active {
+            background: white;
+            border-bottom: 3px solid #4361ee;
+        }
+
+        /* Footer */
+        footer {
+            background: #333;
+            color: white;
+            padding: 40px 0 20px;
+            margin-top: 50px;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .footer-links a {
+            color: #ddd;
+            text-decoration: none;
+            display: block;
+            margin: 8px 0;
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #444;
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .quiz-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <nav class="navbar">
+                <a href="#" class="logo">Quiz System</a>
+                
+                <ul class="nav-links">
+                    <li><a href="#" onclick="showPage('dashboard')" class="active">Dashboard</a></li>
+                    <li><a href="#" onclick="showPage('quizzes')">Quizzes</a></li>
+                    <li><a href="#" onclick="showPage('leaderboard')">Leaderboard</a></li>
+                    <li><a href="#" onclick="showPage('create')">Create Quiz</a></li>
+                    <li><a href="#" onclick="showPage('profile')">Profile</a></li>
+                </ul>
+                
+                <div class="user-menu">
+                    <span>Welcome, User</span>
+                    <a href="#" class="btn btn-primary btn-small" onclick="showPage('login')">Logout</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Dashboard -->
+            <div id="dashboard" class="page active">
+                <h1>Welcome to Quiz System</h1>
+                <p>Test your knowledge and track your progress!</p>
+                
+                <div class="card">
+                    <h2>Your Stats</h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
+                        <div>
+                            <h3>24</h3>
+                            <p>Quizzes Taken</p>
+                        </div>
+                        <div>
+                            <h3>85%</h3>
+                            <p>Average Score</p>
+                        </div>
+                        <div>
+                            <h3>#7</h3>
+                            <p>Global Rank</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2>Recent Activity</h2>
+                    <div class="quiz-grid">
+                        <div class="quiz-card card">
+                            <h3>Web Development Quiz</h3>
+                            <div class="quiz-meta">Score: 85% | 20 Questions</div>
+                            <p>HTML, CSS, JavaScript fundamentals</p>
+                            <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(1)">Retake Quiz</a>
+                        </div>
+                        
+                        <div class="quiz-card card">
+                            <h3>Database Quiz</h3>
+                            <div class="quiz-meta">Score: 72% | 25 Questions</div>
+                            <p>SQL and database management</p>
+                            <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(2)">Retake Quiz</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quizzes Page -->
+            <div id="quizzes" class="page">
+                <h1>Available Quizzes</h1>
+                
+                <div class="card">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn btn-primary btn-small" onclick="filterQuizzes('all')">All</button>
+                        <button class="btn btn-secondary btn-small" onclick="filterQuizzes('programming')">Programming</button>
+                        <button class="btn btn-secondary btn-small" onclick="filterQuizzes('general')">General</button>
+                        <button class="btn btn-secondary btn-small" onclick="filterQuizzes('science')">Science</button>
+                    </div>
+                    
+                    <div class="quiz-grid" id="quiz-list">
+                        <!-- Quizzes will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div id="leaderboard" class="page">
+                <h1>Leaderboard</h1>
+                
+                <div class="card">
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                        <button class="btn btn-primary btn-small" onclick="loadLeaderboard('global')">Global</button>
+                        <button class="btn btn-secondary btn-small" onclick="loadLeaderboard('monthly')">Monthly</button>
+                        <button class="btn btn-secondary btn-small" onclick="loadLeaderboard('weekly')">Weekly</button>
+                    </div>
+                    
+                    <table id="leaderboard-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Score</th>
+                                <th>Quizzes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Leaderboard data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Create Quiz -->
+            <div id="create" class="page">
+                <h1>Create New Quiz</h1>
+                
+                <div class="card">
+                    <form id="create-quiz-form" onsubmit="createQuiz(event)">
+                        <div class="form-group">
+                            <label for="quiz-title">Quiz Title</label>
+                            <input type="text" id="quiz-title" class="form-control" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quiz-description">Description</label>
+                            <textarea id="quiz-description" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quiz-category">Category</label>
+                            <select id="quiz-category" class="form-control" required>
+                                <option value="">Select Category</option>
+                                <option value="programming">Programming</option>
+                                <option value="science">Science</option>
+                                <option value="mathematics">Mathematics</option>
+                                <option value="general">General Knowledge</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="quiz-time">Time Limit (minutes)</label>
+                            <input type="number" id="quiz-time" class="form-control" min="1" max="60" value="10">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Create Quiz</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="profile" class="page">
+                <h1>Your Profile</h1>
+                
+                <div class="card">
+                    <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                        <div style="width: 80px; height: 80px; background: #4361ee; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+                            JS
+                        </div>
+                        <div>
+                            <h2>John Smith</h2>
+                            <p>john.smith@example.com</p>
+                            <p>Member since: January 2024</p>
+                        </div>
+                    </div>
+                    
+                    <h3>Performance Stats</h3>
+                    <table>
+                        <tr>
+                            <td>Total Quizzes Taken</td>
+                            <td>24</td>
+                        </tr>
+                        <tr>
+                            <td>Average Score</td>
+                            <td>85%</td>
+                        </tr>
+                        <tr>
+                            <td>Highest Score</td>
+                            <td>98%</td>
+                        </tr>
+                        <tr>
+                            <td>Total Time Spent</td>
+                            <td>12h 30m</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Login/Register -->
+            <div id="login" class="page">
+                <div class="auth-container">
+                    <div class="card">
+                        <div class="auth-tabs">
+                            <div class="auth-tab active" onclick="showAuthTab('login')">Login</div>
+                            <div class="auth-tab" onclick="showAuthTab('register')">Register</div>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form id="login-form" onsubmit="login(event)">
+                            <div class="form-group">
+                                <label for="login-email">Email</label>
+                                <input type="email" id="login-email" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="login-password">Password</label>
+                                <input type="password" id="login-password" class="form-control" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+                        </form>
+                        
+                        <!-- Register Form -->
+                        <form id="register-form" onsubmit="register(event)" style="display: none;">
+                            <div class="form-group">
+                                <label for="register-name">Full Name</label>
+                                <input type="text" id="register-name" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-email">Email</label>
+                                <input type="email" id="register-email" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-password">Password</label>
+                                <input type="password" id="register-password" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="register-confirm">Confirm Password</label>
+                                <input type="password" id="register-confirm" class="form-control" required>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-success" style="width: 100%;">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Taking -->
+            <div id="quiz-taking" class="page">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <div>
+                            <h1 id="quiz-title">Quiz Title</h1>
+                            <p>Question <span id="current-q">1</span> of <span id="total-q">10</span></p>
+                        </div>
+                        <div id="quiz-timer" style="background: #333; color: white; padding: 10px 20px; border-radius: 5px; font-weight: bold;">
+                            10:00
+                        </div>
+                    </div>
+                    
+                    <div class="progress" style="height: 5px; background: #ddd; margin-bottom: 20px;">
+                        <div id="progress-bar" style="height: 100%; background: #4361ee; width: 10%;"></div>
+                    </div>
+                    
+                    <div class="question">
+                        <h2 id="question-text">Question text will appear here</h2>
+                    </div>
+                    
+                    <div id="options-container">
+                        <!-- Options will be loaded here -->
+                    </div>
+                    
+                    <div class="quiz-nav">
+                        <button class="btn btn-secondary" onclick="prevQuestion()">Previous</button>
+                        <button class="btn btn-primary" onclick="nextQuestion()">Next</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="page">
+                <div class="card">
+                    <div style="text-align: center;">
+                        <h1>Quiz Completed!</h1>
+                        <h2 id="quiz-results-title">Quiz Title</h2>
+                        
+                        <div style="font-size: 48px; color: #4361ee; margin: 20px 0;" id="score-display">
+                            85%
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 20px; margin: 30px 0;">
+                            <div>
+                                <h3>Correct</h3>
+                                <p id="correct-answers">17/20</p>
+                            </div>
+                            <div>
+                                <h3>Time</h3>
+                                <p id="time-taken">12:30</p>
+                            </div>
+                            <div>
+                                <h3>Rank</h3>
+                                <p id="quiz-rank">#42</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 30px;">
+                            <button class="btn btn-primary" onclick="showPage('dashboard')">Dashboard</button>
+                            <button class="btn btn-secondary" onclick="showPage('quizzes')">More Quizzes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <h3>Quiz System</h3>
+                    <p>A comprehensive platform for creating and taking quizzes.</p>
+                </div>
+                
+                <div>
+                    <h3>Quick Links</h3>
+                    <div class="footer-links">
+                        <a href="#" onclick="showPage('dashboard')">Dashboard</a>
+                        <a href="#" onclick="showPage('quizzes')">Quizzes</a>
+                        <a href="#" onclick="showPage('leaderboard')">Leaderboard</a>
+                    </div>
+                </div>
+                
+                <div>
+                    <h3>Contact</h3>
+                    <div class="footer-links">
+                        <a href="mailto:support@quizsystem.com">support@quizsystem.com</a>
+                        <a href="#">Help Center</a>
+                        <a href="#">About Us</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="copyright">
+                &copy; 2025 Quiz System. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Database structure for PHP/MySQL integration
+        
+        /*
+        MySQL Tables Needed:
+        
+        1. users
+           - id (INT, PK, AI)
+           - name (VARCHAR)
+           - email (VARCHAR, UNIQUE)
+           - password (VARCHAR)
+           - created_at (TIMESTAMP)
+        
+        2. quizzes
+           - id (INT, PK, AI)
+           - title (VARCHAR)
+           - description (TEXT)
+           - category (VARCHAR)
+           - time_limit (INT)
+           - created_by (INT, FK to users.id)
+           - created_at (TIMESTAMP)
+        
+        3. questions
+           - id (INT, PK, AI)
+           - quiz_id (INT, FK to quizzes.id)
+           - question_text (TEXT)
+           - option_a (VARCHAR)
+           - option_b (VARCHAR)
+           - option_c (VARCHAR)
+           - option_d (VARCHAR)
+           - correct_option (CHAR)
+        
+        4. quiz_attempts
+           - id (INT, PK, AI)
+           - user_id (INT, FK to users.id)
+           - quiz_id (INT, FK to quizzes.id)
+           - score (INT)
+           - time_taken (INT)
+           - completed_at (TIMESTAMP)
+        
+        5. user_answers
+           - id (INT, PK, AI)
+           - attempt_id (INT, FK to quiz_attempts.id)
+           - question_id (INT, FK to questions.id)
+           - selected_option (CHAR)
+           - is_correct (BOOLEAN)
+        */
+
+        // Page Navigation
+        function showPage(pageName) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Remove active class from all nav links
+            document.querySelectorAll('.nav-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // Add active class to clicked nav link if it exists
+            if(pageName !== 'login' && pageName !== 'quiz-taking' && pageName !== 'results') {
+                document.querySelector(`.nav-links a[onclick*="${pageName}"]`)?.classList.add('active');
+            }
+            
+            // Show selected page
+            document.getElementById(pageName).classList.add('active');
+            
+            // Load data for specific pages
+            if(pageName === 'quizzes') {
+                loadQuizzes();
+            } else if(pageName === 'leaderboard') {
+                loadLeaderboard('global');
+            }
+        }
+
+        // Auth Tabs
+        function showAuthTab(tab) {
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const tabs = document.querySelectorAll('.auth-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if(tab === 'login') {
+                document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+                loginForm.style.display = 'block';
+                registerForm.style.display = 'none';
+            } else {
+                document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+                loginForm.style.display = 'none';
+                registerForm.style.display = 'block';
+            }
+        }
+
+        // Login Function (To be connected to PHP)
+        function login(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // This would be an AJAX call to PHP in a real application
+            // Example:
+            // fetch('login.php', {
+            //     method: 'POST',
+            //     body: JSON.stringify({email, password})
+            // })
+            
+            console.log('Login attempt:', email, password);
+            alert('Login functionality would connect to PHP backend');
+            
+            // On successful login:
+            showPage('dashboard');
+        }
+
+        // Register Function (To be connected to PHP)
+        function register(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const confirm = document.getElementById('register-confirm').value;
+            
+            if(password !== confirm) {
+                alert('Passwords do not match!');
+                return;
+            }
+            
+            // This would be an AJAX call to PHP
+            console.log('Registration attempt:', name, email);
+            alert('Registration would connect to PHP backend');
+            
+            // On successful registration:
+            showPage('dashboard');
+        }
+
+        // Load Quizzes (To be connected to PHP)
+        function loadQuizzes(category = 'all') {
+            const quizList = document.getElementById('quiz-list');
+            
+            // Demo data - In real app, fetch from PHP
+            const quizzes = [
+                {id: 1, title: "Web Development Quiz", category: "programming", questions: 20, time: 15},
+                {id: 2, title: "Database Management", category: "programming", questions: 25, time: 20},
+                {id: 3, title: "General Knowledge", category: "general", questions: 15, time: 10},
+                {id: 4, title: "Science Quiz", category: "science", questions: 18, time: 15}
+            ];
+            
+            let filteredQuizzes = quizzes;
+            if(category !== 'all') {
+                filteredQuizzes = quizzes.filter(q => q.category === category);
+            }
+            
+            quizList.innerHTML = filteredQuizzes.map(quiz => `
+                <div class="quiz-card card">
+                    <h3>${quiz.title}</h3>
+                    <div class="quiz-meta">
+                        Category: ${quiz.category} | 
+                        Questions: ${quiz.questions} | 
+                        Time: ${quiz.time} min
+                    </div>
+                    <p>Test your knowledge in this ${quiz.category} quiz</p>
+                    <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(${quiz.id})">Start Quiz</a>
+                </div>
+            `).join('');
+        }
+
+        function filterQuizzes(category) {
+            loadQuizzes(category);
+        }
+
+        // Load Leaderboard (To be connected to PHP)
+        function loadLeaderboard(period) {
+            const tableBody = document.querySelector('#leaderboard-table tbody');
+            
+            // Demo data - In real app, fetch from PHP
+            const data = [
+                {rank: 1, name: "Alex Johnson", score: "95%", quizzes: 15},
+                {rank: 2, name: "Maria Garcia", score: "92%", quizzes: 12},
+                {rank: 3, name: "John Smith", score: "88%", quizzes: 10},
+                {rank: 4, name: "David Chen", score: "85%", quizzes: 8},
+                {rank: 5, name: "Sarah Williams", score: "82%", quizzes: 7}
+            ];
+            
+            tableBody.innerHTML = data.map(row => `
+                <tr>
+                    <td>${row.rank}</td>
+                    <td>${row.name}</td>
+                    <td>${row.score}</td>
+                    <td>${row.quizzes}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Create Quiz (To be connected to PHP)
+        function createQuiz(event) {
+            event.preventDefault();
+            
+            const title = document.getElementById('quiz-title').value;
+            const description = document.getElementById('quiz-description').value;
+            const category = document.getElementById('quiz-category').value;
+            const time = document.getElementById('quiz-time').value;
+            
+            // This would be an AJAX call to PHP
+            console.log('Creating quiz:', {title, description, category, time});
+            alert('Quiz created! (Would save to database in real app)');
+            
+            // Reset form
+            document.getElementById('create-quiz-form').reset();
+            showPage('dashboard');
+        }
+
+        // Quiz Taking Variables
+        let currentQuiz = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let timerInterval;
+
+        // Start Quiz (To be connected to PHP)
+        function startQuiz(quizId) {
+            // In real app, fetch quiz data from PHP
+            currentQuiz = {
+                id: quizId,
+                title: "Sample Quiz",
+                questions: [
+                    {
+                        id: 1,
+                        text: "What does HTML stand for?",
+                        options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"],
+                        correct: 0
+                    },
+                    {
+                        id: 2,
+                        text: "What does CSS stand for?",
+                        options: ["Creative Style Sheets", "Cascading Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"],
+                        correct: 1
+                    },
+                    {
+                        id: 3,
+                        text: "Which language adds interactivity to web pages?",
+                        options: ["HTML", "CSS", "JavaScript", "Python"],
+                        correct: 2
+                    }
+                ]
+            };
+            
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            
+            // Set quiz title
+            document.getElementById('quiz-title').textContent = currentQuiz.title;
+            document.getElementById('quiz-results-title').textContent = currentQuiz.title;
+            document.getElementById('total-q').textContent = currentQuiz.questions.length;
+            
+            // Start timer
+            startTimer(10); // 10 minutes
+            
+            // Load first question
+            loadQuestion();
+            
+            showPage('quiz-taking');
+        }
+
+        function loadQuestion() {
+            const question = currentQuiz.questions[currentQuestionIndex];
+            
+            // Update question counter
+            document.getElementById('current-q').textContent = currentQuestionIndex + 1;
+            
+            // Update progress
+            const progress = ((currentQuestionIndex + 1) / currentQuiz.questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            
+            // Set question text
+            document.getElementById('question-text').textContent = question.text;
+            
+            // Load options
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const div = document.createElement('div');
+                div.className = 'option';
+                div.textContent = option;
+                div.onclick = () => selectOption(div, index);
+                
+                // Check if this option was previously selected
+                if(userAnswers[currentQuestionIndex] === index) {
+                    div.classList.add('selected');
+                }
+                
+                container.appendChild(div);
+            });
+        }
+
+        function selectOption(element, index) {
+            // Remove selected from all options
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected to clicked option
+            element.classList.add('selected');
+            
+            // Save answer
+            userAnswers[currentQuestionIndex] = index;
+        }
+
+        function prevQuestion() {
+            if(currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if(currentQuestionIndex < currentQuiz.questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                // Submit quiz
+                submitQuiz();
+            }
+        }
+
+        function startTimer(minutes) {
+            let time = minutes * 60;
+            const timerElement = document.getElementById('quiz-timer');
+            
+            timerInterval = setInterval(() => {
+                const minutes = Math.floor(time / 60);
+                const seconds = time % 60;
+                
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                if(time <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                }
+                
+                time--;
+            }, 1000);
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            
+            // Calculate score
+            let correct = 0;
+            currentQuiz.questions.forEach((question, index) => {
+                if(userAnswers[index] === question.correct) {
+                    correct++;
+                }
+            });
+            
+            const score = Math.round((correct / currentQuiz.questions.length) * 100);
+            
+            // Update results
+            document.getElementById('score-display').textContent = `${score}%`;
+            document.getElementById('correct-answers').textContent = `${correct}/${currentQuiz.questions.length}`;
+            
+            // In real app, save to database via PHP
+            console.log('Quiz submitted. Score:', score);
+            
+            showPage('results');
+        }
+
+        // Initialize
+        showPage('dashboard');
+    </script>
+</body>
+</html>
