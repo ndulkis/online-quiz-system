@@ -336,15 +336,15 @@
                     <h2>Your Stats</h2>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0;">
                         <div>
-                            <h3>24</h3>
+                            <h3 id="dash-quizzes">-</h3>
                             <p>Quizzes Taken</p>
                         </div>
                         <div>
-                            <h3>85%</h3>
+                            <h3 id="dash-average">-</h3>
                             <p>Average Score</p>
                         </div>
                         <div>
-                            <h3>#7</h3>
+                            <h3 id="dash-rank">-</h3>
                             <p>Global Rank</p>
                         </div>
                     </div>
@@ -352,20 +352,8 @@
                 
                 <div class="card">
                     <h2>Recent Activity</h2>
-                    <div class="quiz-grid">
-                        <div class="quiz-card card">
-                            <h3>Web Development Quiz</h3>
-                            <div class="quiz-meta">Score: 85% | 20 Questions</div>
-                            <p>HTML, CSS, JavaScript fundamentals</p>
-                            <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(1)">Retake Quiz</a>
-                        </div>
-                        
-                        <div class="quiz-card card">
-                            <h3>Database Quiz</h3>
-                            <div class="quiz-meta">Score: 72% | 25 Questions</div>
-                            <p>SQL and database management</p>
-                            <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(2)">Retake Quiz</a>
-                        </div>
+                    <div id="recent-activity" class="quiz-grid">
+                        <!-- Recent attempts will be loaded here -->
                     </div>
                 </div>
             </div>
@@ -847,11 +835,9 @@
                 document.getElementById('profile-email').textContent = currentUser.email;
                 document.getElementById('profile-member-date').textContent = 'Member since: ' + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
                 
-                // Default stats (can be updated from database later)
-                document.getElementById('stat-quizzes').textContent = '0';
-                document.getElementById('stat-average').textContent = '0%';
-                document.getElementById('stat-highest').textContent = '0%';
-                document.getElementById('stat-time').textContent = '0h 0m';
+                // Load stats from database
+                loadUserStats();
+                loadRecentActivity();
             } else {
                 document.querySelector('.user-menu span').textContent = 'Welcome, User';
                 authBtn.textContent = 'Login';
@@ -875,6 +861,10 @@
             document.getElementById('stat-average').textContent = '0%';
             document.getElementById('stat-highest').textContent = '0%';
             document.getElementById('stat-time').textContent = '0h 0m';
+            document.getElementById('dash-quizzes').textContent = '-';
+            document.getElementById('dash-average').textContent = '-';
+            document.getElementById('dash-rank').textContent = '-';
+            document.getElementById('recent-activity').innerHTML = '';
             
             showPage('login');
             updateUserUI();
@@ -913,27 +903,77 @@
             loadQuizzes(category);
         }
 
+        // Load User Stats from Database
+        function loadUserStats() {
+            if (!currentUser) return;
+            
+            fetch('get_user_stats.php?user_id=' + currentUser.id)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('stat-quizzes').textContent = data.quizzes_taken || '0';
+                    document.getElementById('stat-average').textContent = (data.average_score || 0) + '%';
+                    document.getElementById('stat-highest').textContent = (data.highest_score || 0) + '%';
+                    document.getElementById('stat-time').textContent = data.total_time || '0h 0m';
+                    
+                    // Update dashboard stats
+                    document.getElementById('dash-quizzes').textContent = data.quizzes_taken || '0';
+                    document.getElementById('dash-average').textContent = (data.average_score || 0) + '%';
+                    document.getElementById('dash-rank').textContent = '#' + (data.global_rank || '-');
+                })
+                .catch(error => {
+                    console.error('Error loading user stats:', error);
+                });
+        }
+
+        // Load Recent Activity from Database
+        function loadRecentActivity() {
+            if (!currentUser) return;
+            
+            fetch('get_recent_activity.php?user_id=' + currentUser.id)
+                .then(response => response.json())
+                .then(attempts => {
+                    const container = document.getElementById('recent-activity');
+                    if (attempts.length === 0) {
+                        container.innerHTML = '<p>No quiz attempts yet. Start a quiz to see your recent activity!</p>';
+                        return;
+                    }
+                    
+                    container.innerHTML = attempts.map(attempt => `
+                        <div class="quiz-card card">
+                            <h3>${attempt.quiz_title}</h3>
+                            <div class="quiz-meta">Score: ${attempt.score}% | ${attempt.questions_count} Questions</div>
+                            <p>${attempt.quiz_description}</p>
+                            <a href="#" class="btn btn-primary btn-small" onclick="startQuiz(${attempt.quiz_id})">Retake Quiz</a>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading recent activity:', error);
+                    document.getElementById('recent-activity').innerHTML = '<p>Error loading recent activity.</p>';
+                });
+        }
+
         // Load Leaderboard (To be connected to PHP)
         function loadLeaderboard(period) {
             const tableBody = document.querySelector('#leaderboard-table tbody');
             
-            // Demo data - In real app, fetch from PHP
-            const data = [
-                {rank: 1, name: "Alex Johnson", score: "95%", quizzes: 15},
-                {rank: 2, name: "Maria Garcia", score: "92%", quizzes: 12},
-                {rank: 3, name: "John Smith", score: "88%", quizzes: 10},
-                {rank: 4, name: "David Chen", score: "85%", quizzes: 8},
-                {rank: 5, name: "Sarah Williams", score: "82%", quizzes: 7}
-            ];
-            
-            tableBody.innerHTML = data.map(row => `
-                <tr>
-                    <td>${row.rank}</td>
-                    <td>${row.name}</td>
-                    <td>${row.score}</td>
-                    <td>${row.quizzes}</td>
-                </tr>
-            `).join('');
+            // Fetch leaderboard data from PHP
+            fetch('leaderboard.php?period=' + period)
+                .then(response => response.json())
+                .then(data => {
+                    tableBody.innerHTML = data.map(row => `
+                        <tr>
+                            <td>${row.rank}</td>
+                            <td>${row.name}</td>
+                            <td>${row.score}</td>
+                            <td>${row.quizzes}</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => {
+                    console.error('Error loading leaderboard:', error);
+                    tableBody.innerHTML = '<tr><td colspan="4">Error loading leaderboard</td></tr>';
+                });
         }
 
         // Create Quiz (To be connected to PHP)
@@ -962,47 +1002,31 @@
 
         // Start Quiz (To be connected to PHP)
         function startQuiz(quizId) {
-            // In real app, fetch quiz data from PHP
-            currentQuiz = {
-                id: quizId,
-                title: "Sample Quiz",
-                questions: [
-                    {
-                        id: 1,
-                        text: "What does HTML stand for?",
-                        options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"],
-                        correct: 0
-                    },
-                    {
-                        id: 2,
-                        text: "What does CSS stand for?",
-                        options: ["Creative Style Sheets", "Cascading Style Sheets", "Computer Style Sheets", "Colorful Style Sheets"],
-                        correct: 1
-                    },
-                    {
-                        id: 3,
-                        text: "Which language adds interactivity to web pages?",
-                        options: ["HTML", "CSS", "JavaScript", "Python"],
-                        correct: 2
-                    }
-                ]
-            };
-            
-            currentQuestionIndex = 0;
-            userAnswers = [];
-            
-            // Set quiz title
-            document.getElementById('quiz-title').textContent = currentQuiz.title;
-            document.getElementById('quiz-results-title').textContent = currentQuiz.title;
-            document.getElementById('total-q').textContent = currentQuiz.questions.length;
-            
-            // Start timer
-            startTimer(10); // 10 minutes
-            
-            // Load first question
-            loadQuestion();
-            
-            showPage('quiz-taking');
+            // Fetch quiz data from PHP
+            fetch('get_quiz_questions.php?quiz_id=' + quizId)
+                .then(response => response.json())
+                .then(data => {
+                    currentQuiz = data;
+                    currentQuestionIndex = 0;
+                    userAnswers = [];
+                    
+                    // Set quiz title
+                    document.getElementById('quiz-title').textContent = currentQuiz.title;
+                    document.getElementById('quiz-results-title').textContent = currentQuiz.title;
+                    document.getElementById('total-q').textContent = currentQuiz.questions.length;
+                    
+                    // Start timer
+                    startTimer(currentQuiz.time_limit || 10);
+                    
+                    // Load first question
+                    loadQuestion();
+                    
+                    showPage('quiz-taking');
+                })
+                .catch(error => {
+                    console.error('Error loading quiz:', error);
+                    alert('Error loading quiz. Please try again.');
+                });
         }
 
         function loadQuestion() {

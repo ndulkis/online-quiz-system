@@ -7,7 +7,7 @@ $mysql_path = "C:\\Program Files\\MySQL\\MySQL Server 9.5\\bin\\mysql.exe";
 // Function to query database
 function queryDatabase($query) {
     global $mysql_path;
-    $cmd = "\"$mysql_path\" -u root -p\"Dodong1229!\" -D quiz_system -e \"$query\" 2>nul";
+    $cmd = "\"$mysql_path\" -B -u quiz_user -D quiz_system -e \"$query\" 2>nul";
     $output = shell_exec($cmd);
     return $output;
 }
@@ -29,26 +29,29 @@ if ($action === 'login') {
     $query = "SELECT id, name, email, password FROM users WHERE email = '$email' LIMIT 1;";
     $result = queryDatabase($query);
     
-    // Parse the result
-    $lines = trim($result);
+    // Parse the result - split by newlines and get the data line (skip header)
+    $lines = explode("\n", trim($result));
     $user = null;
     
-    if (!empty($lines) && strpos($lines, 'id') === false) {
-        // Skip header line and parse data
-        $parts = preg_split('/\s+/', trim($lines));
-        if (count($parts) >= 4) {
-            $userId = $parts[0];
-            $userName = $parts[1];
-            $userEmail = $parts[2];
-            $userPassword = $parts[3];
-            
-            // Check password
-            if ($userPassword === $password) {
-                $user = [
-                    'id' => $userId,
-                    'name' => $userName,
-                    'email' => $userEmail
-                ];
+    if (count($lines) >= 2) {
+        // Get the data line (second line, first line is header)
+        $dataLine = trim($lines[1]);
+        if (!empty($dataLine)) {
+            $parts = preg_split('/\s+/', $dataLine);
+            if (count($parts) >= 4) {
+                $userId = $parts[0];
+                $userName = $parts[1];
+                $userEmail = $parts[2];
+                $userPassword = $parts[3];
+                
+                // Check password
+                if ($userPassword === $password) {
+                    $user = [
+                        'id' => $userId,
+                        'name' => $userName,
+                        'email' => $userEmail
+                    ];
+                }
             }
         }
     }
@@ -92,7 +95,9 @@ else if ($action === 'register') {
     $checkQuery = "SELECT id FROM users WHERE email = '$email';";
     $checkResult = queryDatabase($checkQuery);
     
-    if (!empty(trim($checkResult)) && strpos($checkResult, 'id') === false) {
+    // Check if we got any results (more than just the header line)
+    $resultLines = explode("\n", trim($checkResult));
+    if (count($resultLines) > 1 && !empty(trim($resultLines[1]))) {
         echo json_encode([
             'success' => false,
             'message' => 'Email already registered'

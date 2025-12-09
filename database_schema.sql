@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS questions (
     option_b VARCHAR(255),
     option_c VARCHAR(255),
     option_d VARCHAR(255),
-    correct_option CHAR(1),
+    correct_option CHAR(1) CHECK (correct_option IN ('A', 'B', 'C', 'D')),
     FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
 );
 
@@ -55,10 +55,10 @@ CREATE TABLE IF NOT EXISTS user_answers (
     id INT AUTO_INCREMENT PRIMARY KEY,
     attempt_id INT NOT NULL,
     question_id INT NOT NULL,
-    selected_option CHAR(1),
+    selected_option CHAR(1) CHECK (selected_option IN ('A', 'B', 'C', 'D')),
     is_correct BOOLEAN,
     FOREIGN KEY (attempt_id) REFERENCES quiz_attempts(id) ON DELETE CASCADE,
-    FOREIGN KEY (question_id) REFERENCES questions(id)
+    FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
 );
 
 -- Sample Users Data

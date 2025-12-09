@@ -1,8 +1,8 @@
 <?php
 // Database Configuration
 define('DB_HOST', 'localhost');
-define('DB_USER', 'root');
-define('DB_PASS', 'Dodong1229!');
+define('DB_USER', 'quiz_user');
+define('DB_PASS', '');
 define('DB_NAME', 'quiz_system');
 
 try {
