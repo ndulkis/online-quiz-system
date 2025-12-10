@@ -1,0 +1,322 @@
+# Online Quiz System - Complete Tutorial & Project Summary
+
+Course: CPSC 332
+Institution: Cal State Fullerton
+Semester: Fall 2025
+
+================================================================================
+QUICK START GUIDE
+================================================================================
+
+1. Import Database:
+   mysql -u root -p < database/quiz_system.sql
+
+2. Start Server:
+   cd assets
+   php -S localhost:8000
+
+3. Open Browser:
+   http://localhost:8000
+
+4. Login with test account:
+   Email: john@example.com
+   Password: password123
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+A complete Online Quiz System with:
+- User registration and authentication
+- Quiz taking with timer
+- Score tracking and leaderboards
+- User profiles and statistics
+- Responsive single-page application
+
+================================================================================
+PROJECT STRUCTURE
+================================================================================
+
+online-quiz-system/
+├── assets/                     # MAIN APPLICATION FOLDER
+│   ├── index.html              # Frontend application
+│   ├── auth.php                # User authentication
+│   ├── get_quizzes.php         # List available quizzes
+│   ├── get_quiz_questions.php  # Load quiz questions
+│   ├── submit_quiz.php         # Submit and save quiz results
+│   ├── get_user_stats.php      # Dashboard statistics
+│   ├── get_recent_activity.php # Recent quiz attempts
+│   ├── get_user_profile.php    # User profile data
+│   └── leaderboard.php         # Leaderboard rankings
+├── config/
+│   └── db_connect.php          # Centralized database connection
+├── database/
+│   ├── quiz_system.sql         # Complete database setup
+│   └── README.txt              # Database documentation
+└── Tutorial_Summary.txt        # This file
+
+================================================================================
+DATABASE INFORMATION
+================================================================================
+
+Database Name: quiz_system
+Database User: quiz_user
+Password: (empty)
+Host: localhost
+Port: 3306
+
+Tables:
+- users              (User accounts)
+- quizzes            (Available quizzes)
+- questions          (Quiz questions and answers)
+- quiz_attempts      (User quiz submissions)
+- user_answers       (Individual question responses)
+
+Sample Data Included:
+- 4 test users
+- 4 quizzes (Programming, General Knowledge, Science)
+- 15 questions across quizzes
+- 6 sample quiz attempts
+
+To Reset Database:
+mysql -u root -p quiz_system < database/quiz_system.sql
+
+================================================================================
+TEST ACCOUNTS
+================================================================================
+
+Account 1:
+Email: john@example.com
+Password: password123
+
+Account 2:
+Email: jane@example.com
+Password: password123
+
+Account 3:
+Email: bob@example.com
+Password: password123
+
+Account 4:
+Email: alice@example.com
+Password: password123
+
+================================================================================
+FEATURES IMPLEMENTED
+================================================================================
+
+User Management:
+- User registration with validation
+- Secure login system
+- Profile management
+- Session persistence (localStorage)
+
+Quiz System:
+- Browse available quizzes
+- Filter quizzes by category
+- Take quizzes with countdown timer
+- Submit answers and get instant results
+- Progress tracking through questions
+
+Statistics & Tracking:
+- Personal dashboard with stats
+- Recent activity (last 5 attempts)
+- Quiz history with scores
+- Time tracking
+
+Leaderboard:
+- Global rankings
+- Monthly rankings (last 30 days)
+- Weekly rankings (last 7 days)
+- Top 10 users by average score
+
+User Profile:
+- Account information
+- Total quizzes taken
+- Average and highest scores
+- Total time spent
+
+================================================================================
+TECHNOLOGIES USED
+================================================================================
+
+Frontend: HTML5, CSS3, JavaScript (ES6+)
+Backend: PHP 8.5.0
+Database: MySQL 8.4.0
+Architecture: Single Page Application (SPA)
+API Style: RESTful JSON endpoints
+
+================================================================================
+SECURITY FEATURES
+================================================================================
+
+- Prepared statements (SQL injection prevention)
+- Input validation and sanitization
+- Password confirmation on registration
+- Email uniqueness verification
+- Session management
+- Centralized database connection
+
+================================================================================
+FILE DESCRIPTIONS
+================================================================================
+
+Frontend (assets/index.html):
+Complete single-page application containing all HTML, CSS, JavaScript,
+AJAX API calls, and state management.
+
+Backend PHP Files (assets/):
+
+auth.php
+- Handles login and registration
+- Validates credentials
+- Returns user data as JSON
+
+get_quizzes.php
+- Lists all available quizzes
+- Supports category filtering
+- Returns quiz metadata
+
+get_quiz_questions.php
+- Loads specific quiz with questions
+- Returns all question data
+- Used when starting a quiz
+
+submit_quiz.php
+- Saves quiz submission
+- Calculates and stores score
+- Saves individual answer choices
+- Returns success/failure status
+
+get_user_stats.php
+- Calculates user statistics
+- Returns quizzes taken, average score, global rank
+- Used for dashboard display
+
+get_recent_activity.php
+- Fetches last 5 quiz attempts
+- Includes quiz details and scores
+- Used for dashboard recent activity section
+
+get_user_profile.php
+- Complete user profile data
+- Includes all statistics
+- Member since date, time spent, etc.
+
+leaderboard.php
+- Top 10 users by average score
+- Supports global/monthly/weekly filtering
+- Returns ranked list
+
+config/db_connect.php
+- Centralized database connection function
+- Used by all PHP files for consistent DB access
+- Returns PDO connection object
+
+================================================================================
+SAMPLE QUIZZES
+================================================================================
+
+1. JavaScript Basics (Programming) - 5 questions, 10 min
+2. HTML & CSS Fundamentals (Programming) - 5 questions, 8 min
+3. General Knowledge Quiz (General) - 3 questions, 5 min
+4. Basic Science (Science) - 2 questions, 5 min
+
+================================================================================
+TROUBLESHOOTING
+================================================================================
+
+Problem: Can't connect to database
+Solution:
+- Make sure MySQL is running
+- Check credentials in config/db_connect.php
+- Verify quiz_system database exists
+- Verify quiz_user account has proper permissions
+
+Problem: PHP server won't start
+Solution:
+- Make sure you're in the assets directory
+- Check if port 8000 is already in use: lsof -i :8000
+- Try a different port: php -S localhost:8080
+
+Problem: Login doesn't work
+Solution:
+- Check browser console for errors (F12)
+- Verify auth.php file exists in the assets folder
+- Make sure you're using the correct email and password
+- Clear browser localStorage
+
+Problem: Page shows "Database connection failed"
+Solution:
+- Verify MySQL is running
+- Check that the quiz_system database exists
+- Verify the quiz_user account has proper permissions
+
+================================================================================
+COMMON COMMANDS
+================================================================================
+
+Start the Application:
+cd assets
+php -S localhost:8000
+
+Access in Browser:
+http://localhost:8000
+
+Reset Database:
+mysql -u root -p -e "DROP DATABASE IF EXISTS quiz_system;"
+mysql -u root -p < database/quiz_system.sql
+
+View Database Tables:
+mysql -u root -p quiz_system -e "SHOW TABLES;"
+
+Check User Accounts:
+mysql -u root -p quiz_system -e "SELECT id, name, email FROM users;"
+
+================================================================================
+PROJECT CLEANUP NOTES
+================================================================================
+
+Removed Files:
+- Duplicate public/ folder (was redundant with assets/)
+- Empty placeholder files
+- Unused admin/, config/, includes/ folders
+- CSS and image files (styles are in index.html)
+
+What's Left:
+- Only essential working files
+- Clean, organized structure
+- Assets folder contains everything needed to run
+
+================================================================================
+KEY FEATURES FOR PROJECT REPORT
+================================================================================
+
+Technical Achievements:
+1. Complete CRUD operations (Create/Read/Update/Delete)
+2. Relational database with 5 tables
+3. User authentication system
+4. Real-time quiz timer
+5. Dynamic leaderboard with time filtering
+6. Responsive single-page application
+7. RESTful API architecture
+8. Prepared statements for SQL security
+9. AJAX for seamless user experience
+10. Complex SQL queries (JOINs, aggregations, subqueries)
+11. Session management
+12. Data validation and sanitization
+13. Centralized database connection pattern
+
+Challenges Overcome:
+- Frontend-backend integration
+- Real-time data synchronization
+- Complex SQL for ranking/statistics
+- Timer management during quizzes
+- Response format standardization
+- Global rank calculation with proper SQL subqueries
+
+================================================================================
+LAST UPDATED
+================================================================================
+
+December 2025
