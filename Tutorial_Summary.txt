@@ -1,8 +1,6 @@
 # Online Quiz System - Complete Tutorial & Project Summary
 
-Course: CPSC 332
-Institution: Cal State Fullerton
-Semester: Fall 2025
+
 
 ================================================================================
 QUICK START GUIDE
@@ -315,8 +313,4 @@ Challenges Overcome:
 - Response format standardization
 - Global rank calculation with proper SQL subqueries
 
-================================================================================
-LAST UPDATED
-================================================================================
 
-December 2025
