@@ -406,19 +406,19 @@
             <!-- Create Quiz -->
             <div id="create" class="page">
                 <h1>Create New Quiz</h1>
-                
+
                 <div class="card">
                     <form id="create-quiz-form" onsubmit="createQuiz(event)">
                         <div class="form-group">
                             <label for="quiz-title">Quiz Title</label>
                             <input type="text" id="quiz-title" class="form-control" required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="quiz-description">Description</label>
                             <textarea id="quiz-description" class="form-control" rows="3"></textarea>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="quiz-category">Category</label>
                             <select id="quiz-category" class="form-control" required>
@@ -429,12 +429,12 @@
                                 <option value="general">General Knowledge</option>
                             </select>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="quiz-time">Time Limit (minutes)</label>
                             <input type="number" id="quiz-time" class="form-control" min="1" max="60" value="10">
                         </div>
-                        
+
                         <button type="submit" class="btn btn-primary">Create Quiz</button>
                     </form>
                 </div>
@@ -711,11 +711,43 @@
         // Check if user is logged in before showing profile
         function checkAndShowProfile() {
             if (currentUser) {
+                loadUserProfile();
                 showPage('profile');
             } else {
                 alert('Please login to see your profile');
                 showPage('login');
             }
+        }
+
+        // Load user profile data from database
+        function loadUserProfile() {
+            if (!currentUser) return;
+
+            fetch('get_user_profile.php?user_id=' + currentUser.id)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const profile = data.profile;
+
+                        // Update profile info
+                        const initials = profile.name.split(' ').map(n => n[0]).join('').toUpperCase();
+                        document.getElementById('avatar').textContent = initials;
+                        document.getElementById('profile-name').textContent = profile.name;
+                        document.getElementById('profile-email').textContent = profile.email;
+                        document.getElementById('profile-member-date').textContent = 'Member since: ' + profile.memberSince;
+
+                        // Update stats
+                        document.getElementById('stat-quizzes').textContent = profile.totalQuizzes;
+                        document.getElementById('stat-average').textContent = profile.averageScore;
+                        document.getElementById('stat-highest').textContent = profile.highestScore;
+                        document.getElementById('stat-time').textContent = profile.timeSpent;
+                    } else {
+                        console.error('Error loading profile:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading profile:', error);
+                });
         }
 
         // Auth Tabs
@@ -900,25 +932,40 @@
         }
 
         function filterQuizzes(category) {
+            // Update button styles to show active category
+            const quizButtons = document.querySelectorAll('#quizzes .btn-small');
+            quizButtons.forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+
+            // Set the clicked button as active
+            const activeButton = Array.from(quizButtons).find(btn =>
+                btn.textContent.toLowerCase() === category.toLowerCase() ||
+                (category === 'all' && btn.textContent.toLowerCase() === 'all')
+            );
+            if (activeButton) {
+                activeButton.classList.remove('btn-secondary');
+                activeButton.classList.add('btn-primary');
+            }
+
             loadQuizzes(category);
         }
 
-        // Load User Stats from Database
+        // Load User Stats from Database (for dashboard only)
         function loadUserStats() {
             if (!currentUser) return;
-            
+
             fetch('get_user_stats.php?user_id=' + currentUser.id)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('stat-quizzes').textContent = data.quizzes_taken || '0';
-                    document.getElementById('stat-average').textContent = (data.average_score || 0) + '%';
-                    document.getElementById('stat-highest').textContent = (data.highest_score || 0) + '%';
-                    document.getElementById('stat-time').textContent = data.total_time || '0h 0m';
-                    
-                    // Update dashboard stats
-                    document.getElementById('dash-quizzes').textContent = data.quizzes_taken || '0';
-                    document.getElementById('dash-average').textContent = (data.average_score || 0) + '%';
-                    document.getElementById('dash-rank').textContent = '#' + (data.global_rank || '-');
+                    if (data.success && data.stats) {
+                        const stats = data.stats;
+                        // Update dashboard stats
+                        document.getElementById('dash-quizzes').textContent = stats.quizzesTaken || '0';
+                        document.getElementById('dash-average').textContent = stats.averageScore || '0%';
+                        document.getElementById('dash-rank').textContent = stats.globalRank || '#-';
+                    }
                 })
                 .catch(error => {
                     console.error('Error loading user stats:', error);
@@ -953,10 +1000,26 @@
                 });
         }
 
-        // Load Leaderboard (To be connected to PHP)
+        // Load Leaderboard
         function loadLeaderboard(period) {
             const tableBody = document.querySelector('#leaderboard-table tbody');
-            
+
+            // Update button styles to show active period
+            const leaderboardButtons = document.querySelectorAll('#leaderboard .btn');
+            leaderboardButtons.forEach(btn => {
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+
+            // Set the clicked button as active
+            const activeButton = Array.from(leaderboardButtons).find(btn =>
+                btn.textContent.toLowerCase() === period.toLowerCase()
+            );
+            if (activeButton) {
+                activeButton.classList.remove('btn-secondary');
+                activeButton.classList.add('btn-primary');
+            }
+
             // Fetch leaderboard data from PHP
             fetch('leaderboard.php?period=' + period)
                 .then(response => response.json())
@@ -976,19 +1039,18 @@
                 });
         }
 
-        // Create Quiz (To be connected to PHP)
+        // Create Quiz - Admin feature
         function createQuiz(event) {
             event.preventDefault();
-            
+
             const title = document.getElementById('quiz-title').value;
             const description = document.getElementById('quiz-description').value;
             const category = document.getElementById('quiz-category').value;
             const time = document.getElementById('quiz-time').value;
-            
-            // This would be an AJAX call to PHP
-            console.log('Creating quiz:', {title, description, category, time});
-            alert('Quiz created! (Would save to database in real app)');
-            
+
+            // Show info about quiz creation
+            alert(`Quiz Information Saved!\n\nTitle: ${title}\nCategory: ${category}\nTime Limit: ${time} minutes\n\nNote: This is a demo feature. In a full implementation, this would save to the database with questions added through an admin interface.`);
+
             // Reset form
             document.getElementById('create-quiz-form').reset();
             showPage('dashboard');
@@ -1112,7 +1174,7 @@
 
         function submitQuiz() {
             clearInterval(timerInterval);
-            
+
             // Calculate score
             let correct = 0;
             currentQuiz.questions.forEach((question, index) => {
@@ -1120,16 +1182,60 @@
                     correct++;
                 }
             });
-            
+
             const score = Math.round((correct / currentQuiz.questions.length) * 100);
-            
-            // Update results
+
+            // Update results display
             document.getElementById('score-display').textContent = `${score}%`;
             document.getElementById('correct-answers').textContent = `${correct}/${currentQuiz.questions.length}`;
-            
-            // In real app, save to database via PHP
-            console.log('Quiz submitted. Score:', score);
-            
+
+            // Save quiz results to database
+            if (currentUser) {
+                // Prepare answers in the format expected by the backend
+                const answersData = {};
+                currentQuiz.questions.forEach((question, index) => {
+                    // Convert user answer index to option letter (0 -> 'A', 1 -> 'B', etc.)
+                    const optionLetter = userAnswers[index] !== undefined
+                        ? String.fromCharCode(65 + userAnswers[index])
+                        : null;
+                    answersData[question.id] = optionLetter;
+                });
+
+                // Calculate time taken (in seconds)
+                const timerText = document.getElementById('quiz-timer').textContent;
+                const [minutes, seconds] = timerText.split(':').map(Number);
+                const timeLimit = (currentQuiz.time_limit || 10) * 60;
+                const timeTaken = timeLimit - (minutes * 60 + seconds);
+
+                // Send quiz results to the backend
+                fetch('submit_quiz.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: currentUser.id,
+                        quiz_id: currentQuiz.id,
+                        answers: answersData,
+                        time_taken: timeTaken
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        console.log('Quiz results saved successfully');
+                        // Reload recent activity and stats to show the new attempt
+                        loadRecentActivity();
+                        loadUserStats();
+                    } else {
+                        console.error('Error saving quiz results:', data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error submitting quiz:', error);
+                });
+            }
+
             showPage('results');
         }
 

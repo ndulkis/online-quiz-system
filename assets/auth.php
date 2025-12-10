@@ -1,22 +1,26 @@
 <?php
 header('Content-Type: application/json');
 
-$action = isset($_GET['action']) ? $_GET['action'] : '';
-$mysql_path = "C:\\Program Files\\MySQL\\MySQL Server 9.5\\bin\\mysql.exe";
+// Include database connection
+require_once __DIR__ . '/../config/db_connect.php';
 
-// Function to query database
-function queryDatabase($query) {
-    global $mysql_path;
-    $cmd = "\"$mysql_path\" -B -u quiz_user -D quiz_system -e \"$query\" 2>nul";
-    $output = shell_exec($cmd);
-    return $output;
+// Connect to the database
+$conn = getDbConnection();
+if (!$conn) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection failed'
+    ]);
+    exit;
 }
+
+$action = isset($_GET['action']) ? $_GET['action'] : '';
 
 if ($action === 'login') {
     $input = json_decode(file_get_contents('php://input'), true);
     $email = isset($input['email']) ? trim($input['email']) : '';
     $password = isset($input['password']) ? trim($input['password']) : '';
-    
+
     if (empty($email) || empty($password)) {
         echo json_encode([
             'success' => false,
@@ -24,42 +28,21 @@ if ($action === 'login') {
         ]);
         exit;
     }
-    
-    // Query database for user
-    $query = "SELECT id, name, email, password FROM users WHERE email = '$email' LIMIT 1;";
-    $result = queryDatabase($query);
-    
-    // Parse the result - split by newlines and get the data line (skip header)
-    $lines = explode("\n", trim($result));
-    $user = null;
-    
-    if (count($lines) >= 2) {
-        // Get the data line (second line, first line is header)
-        $dataLine = trim($lines[1]);
-        if (!empty($dataLine)) {
-            $parts = preg_split('/\s+/', $dataLine);
-            if (count($parts) >= 4) {
-                $userId = $parts[0];
-                $userName = $parts[1];
-                $userEmail = $parts[2];
-                $userPassword = $parts[3];
-                
-                // Check password
-                if ($userPassword === $password) {
-                    $user = [
-                        'id' => $userId,
-                        'name' => $userName,
-                        'email' => $userEmail
-                    ];
-                }
-            }
-        }
-    }
-    
-    if ($user) {
+
+    // Query database for user using prepared statement
+    $stmt = $conn->prepare("SELECT id, name, email, password FROM users WHERE email = ? LIMIT 1");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Check if user exists and password matches
+    if ($user && $user['password'] === $password) {
         echo json_encode([
             'success' => true,
-            'user' => $user
+            'user' => [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'email' => $user['email']
+            ]
         ]);
     } else {
         echo json_encode([
@@ -74,7 +57,7 @@ else if ($action === 'register') {
     $email = isset($input['email']) ? trim($input['email']) : '';
     $password = isset($input['password']) ? trim($input['password']) : '';
     $confirm = isset($input['confirm']) ? trim($input['confirm']) : '';
-    
+
     if (empty($name) || empty($email) || empty($password)) {
         echo json_encode([
             'success' => false,
@@ -82,7 +65,7 @@ else if ($action === 'register') {
         ]);
         exit;
     }
-    
+
     if ($password !== $confirm) {
         echo json_encode([
             'success' => false,
@@ -90,25 +73,24 @@ else if ($action === 'register') {
         ]);
         exit;
     }
-    
+
     // Check if email already exists
-    $checkQuery = "SELECT id FROM users WHERE email = '$email';";
-    $checkResult = queryDatabase($checkQuery);
-    
-    // Check if we got any results (more than just the header line)
-    $resultLines = explode("\n", trim($checkResult));
-    if (count($resultLines) > 1 && !empty(trim($resultLines[1]))) {
+    $stmt = $conn->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $existingUser = $stmt->fetch();
+
+    if ($existingUser) {
         echo json_encode([
             'success' => false,
             'message' => 'Email already registered'
         ]);
         exit;
     }
-    
+
     // Insert new user into database
-    $insertQuery = "INSERT INTO users (name, email, password) VALUES ('$name', '$email', '$password');";
-    queryDatabase($insertQuery);
-    
+    $stmt = $conn->prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)");
+    $stmt->execute([$name, $email, $password]);
+
     echo json_encode([
         'success' => true,
         'message' => 'Registration successful! Please login.',

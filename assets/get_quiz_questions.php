@@ -1,6 +1,19 @@
 <?php
 header('Content-Type: application/json');
 
+// Include database connection
+require_once __DIR__ . '/../config/db_connect.php';
+
+// Connect to database
+$conn = getDbConnection();
+if (!$conn) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database connection failed'
+    ]);
+    exit;
+}
+
 $quiz_id = isset($_GET['quiz_id']) ? intval($_GET['quiz_id']) : 0;
 
 if (empty($quiz_id)) {
@@ -11,32 +24,10 @@ if (empty($quiz_id)) {
     exit;
 }
 
-$mysql_path = "C:\\Program Files\\MySQL\\MySQL Server 9.5\\bin\\mysql.exe";
-
 // Get quiz details
-$quizQuery = "SELECT id, title, description, time_limit FROM quizzes WHERE id = $quiz_id LIMIT 1;";
-$cmd = "\"$mysql_path\" -B -u quiz_user -D quiz_system -e \"$quizQuery\" 2>nul";
-$quizResult = shell_exec($cmd);
-
-// Parse quiz result
-$quizLines = explode("\n", trim($quizResult));
-$quiz = null;
-
-if (count($quizLines) >= 2) {
-    $quizData = trim($quizLines[1]);
-    if (!empty($quizData)) {
-        $parts = preg_split('/\t/', $quizData);
-        if (count($parts) >= 3) {
-            $quiz = [
-                'id' => $parts[0],
-                'title' => $parts[1],
-                'description' => $parts[2],
-                'time_limit' => isset($parts[3]) ? intval($parts[3]) : 10,
-                'questions' => []
-            ];
-        }
-    }
-}
+$stmt = $conn->prepare("SELECT id, title, description, time_limit FROM quizzes WHERE id = ? LIMIT 1");
+$stmt->execute([$quiz_id]);
+$quiz = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$quiz) {
     echo json_encode([
@@ -47,38 +38,27 @@ if (!$quiz) {
 }
 
 // Get questions for this quiz
-$questionsQuery = "SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option FROM questions WHERE quiz_id = $quiz_id;";
-$cmd = "\"$mysql_path\" -B -u quiz_user -D quiz_system -e \"$questionsQuery\" 2>nul";
-$questionsResult = shell_exec($cmd);
+$stmt = $conn->prepare("SELECT id, question_text, option_a, option_b, option_c, option_d, correct_option FROM questions WHERE quiz_id = ?");
+$stmt->execute([$quiz_id]);
+$questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$questionLines = explode("\n", trim($questionsResult));
+// Format the questions for the frontend
+$quiz['questions'] = [];
+foreach ($questions as $question) {
+    // Convert letter to index (A=0, B=1, C=2, D=3)
+    $correctIndex = ord($question['correct_option']) - ord('A');
 
-// Skip header line and parse questions
-for ($i = 1; $i < count($questionLines); $i++) {
-    $line = trim($questionLines[$i]);
-    if (empty($line)) continue;
-    
-    $parts = preg_split('/\t/', $line);
-    if (count($parts) >= 7) {
-        $correctOption = $parts[6]; // A, B, C, or D
-        
-        // Convert letter to index (A=0, B=1, C=2, D=3)
-        $correctIndex = ord($correctOption) - ord('A');
-        
-        $question = [
-            'id' => $parts[0],
-            'text' => $parts[1],
-            'options' => [
-                $parts[2],  // option A
-                $parts[3],  // option B
-                $parts[4],  // option C
-                $parts[5]   // option D
-            ],
-            'correct' => $correctIndex
-        ];
-        
-        $quiz['questions'][] = $question;
-    }
+    $quiz['questions'][] = [
+        'id' => $question['id'],
+        'text' => $question['question_text'],
+        'options' => [
+            $question['option_a'],
+            $question['option_b'],
+            $question['option_c'],
+            $question['option_d']
+        ],
+        'correct' => $correctIndex
+    ];
 }
 
 echo json_encode($quiz);
